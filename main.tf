@@ -2,6 +2,20 @@
 resource "aws_instance" "k8s_master" {
   ami           = var.ami["master"]
   instance_type = var.instance_type["master"]
+
+root_block_device {
+    volume_size = 30  # Root volume size (enough for OS and Kubernetes components)
+    volume_type = "gp3"
+  }
+
+  ebs_block_device {
+    device_name = "/dev/sdh"
+    volume_size = 20  # ETCD volume
+    volume_type = "gp3"
+    delete_on_termination = true
+  }
+
+
   tags = {
     Name = "k8s-master"
   }
@@ -40,6 +54,20 @@ resource "aws_instance" "k8s_worker" {
   key_name        = aws_key_pair.k8s.key_name
   security_groups = ["k8s_worker_sg"]
   depends_on      = [aws_instance.k8s_master]
+
+root_block_device {
+    volume_size = 30  # Root volume size (enough for OS and Kubernetes components)
+    volume_type = "gp3"
+  }
+
+  ebs_block_device {
+    device_name = "/dev/sdh"
+    volume_size = 20  # ETCD volume
+    volume_type = "gp3"
+    delete_on_termination = true
+  }
+
+
   connection {
     type        = "ssh"
     user        = "ubuntu"
